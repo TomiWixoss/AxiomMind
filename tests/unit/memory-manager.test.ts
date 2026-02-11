@@ -56,24 +56,18 @@ describe('MemoryManager', () => {
   });
 
   describe('Token Tracking', () => {
-    test('should estimate tokens for message', () => {
-      const tokens = memory.estimateTokens('Hello world');
-      expect(tokens).toBeGreaterThan(0);
-      expect(tokens).toBeLessThan(10); // Short message
-    });
-
-    test('should estimate tokens for long message', () => {
-      const longText = 'This is a much longer message that contains many words and should result in more tokens being counted by the estimation function.';
-      const tokens = memory.estimateTokens(longText);
-      expect(tokens).toBeGreaterThan(20);
-    });
-
-    test('should track total tokens', () => {
-      memory.addMessage({ role: 'user', content: 'Hello' });
-      memory.addMessage({ role: 'assistant', content: 'Hi there!' });
+    test('should track total tokens from API', () => {
+      // Initially 0 (no API call yet)
+      expect(memory.getTotalTokens()).toBe(0);
       
-      const totalTokens = memory.getTotalTokens();
-      expect(totalTokens).toBeGreaterThan(0);
+      // After API response
+      memory.updateTokenUsage({
+        prompt_tokens: 100,
+        completion_tokens: 50,
+        total_tokens: 150,
+      });
+      
+      expect(memory.getTotalTokens()).toBe(100);
     });
 
     test('should update token usage from API response', () => {
@@ -95,7 +89,7 @@ describe('MemoryManager', () => {
       // Create memory with lower token limit
       const lowTokenMemory = new MemoryManager(db, { maxTokens: 100, keepMessages: 10 });
       
-      // Add many messages to exceed token limit
+      // Add many messages
       for (let i = 0; i < 50; i++) {
         lowTokenMemory.addMessage({ 
           role: 'user', 
@@ -106,6 +100,16 @@ describe('MemoryManager', () => {
           content: `Response to message ${i} with some additional content` 
         });
       }
+
+      // Simulate API response with high token count
+      lowTokenMemory.updateTokenUsage({
+        prompt_tokens: 150, // Exceeds maxTokens (100)
+        completion_tokens: 50,
+        total_tokens: 200,
+      });
+
+      // Manually trigger trim after API response
+      lowTokenMemory.addMessage({ role: 'user', content: 'trigger trim' });
 
       // Should auto-trim to keepMessages (10)
       const messages = lowTokenMemory.getMessages();
@@ -123,6 +127,16 @@ describe('MemoryManager', () => {
         lowTokenMemory.addMessage({ role: 'assistant', content: `Resp ${i}` });
       }
 
+      // Simulate API response exceeding limit
+      lowTokenMemory.updateTokenUsage({
+        prompt_tokens: 100, // Exceeds maxTokens (50)
+        completion_tokens: 20,
+        total_tokens: 120,
+      });
+
+      // Trigger trim
+      lowTokenMemory.addMessage({ role: 'user', content: 'final' });
+
       // System message is separate, not in messages array
       const messages = lowTokenMemory.getMessages();
       const context = lowTokenMemory.buildContext();
@@ -131,7 +145,7 @@ describe('MemoryManager', () => {
       expect(context[0].role).toBe('system');
       expect(context[0].content).toContain('speedrun bot');
       // Auto-trim keeps messages under limit
-      expect(messages.length).toBeLessThan(60); // Much less than 60 added
+      expect(messages.length).toBeLessThanOrEqual(5);
     });
 
     test('should manually trim to specific count', () => {
@@ -222,9 +236,16 @@ describe('MemoryManager', () => {
       memory.addMessage({ role: 'assistant', content: 'Hi there!' });
       memory.addMessage({ role: 'user', content: 'How are you?' });
 
+      // Simulate API token usage
+      memory.updateTokenUsage({
+        prompt_tokens: 50,
+        completion_tokens: 30,
+        total_tokens: 80,
+      });
+
       const stats = memory.getStats();
       expect(stats.messageCount).toBe(3);
-      expect(stats.estimatedTokens).toBeGreaterThan(0);
+      expect(stats.estimatedTokens).toBe(50); // From API
       expect(stats.userMessages).toBe(2);
       expect(stats.assistantMessages).toBe(1);
     });

@@ -75,26 +75,11 @@ export class MemoryManager {
   // === Token Management ===
 
   /**
-   * Estimate tokens using simple word count approximation
-   * Real: ~1.3 tokens per word for English
+   * Get total tokens from actual API usage
+   * Returns prompt_tokens which represents the input context size
    */
-  estimateTokens(text: string): number {
-    const words = text.split(/\s+/).length;
-    return Math.ceil(words * 1.3);
-  }
-
   getTotalTokens(): number {
-    let total = 0;
-    
-    if (this.systemMessage) {
-      total += this.estimateTokens(this.systemMessage.content);
-    }
-
-    for (const msg of this.messages) {
-      total += this.estimateTokens(msg.content);
-    }
-
-    return total;
+    return this.tokenUsage.prompt_tokens;
   }
 
   updateTokenUsage(usage: TokenUsage) {
@@ -231,7 +216,7 @@ export class MemoryManager {
   getStats(): ConversationStats {
     const stats: ConversationStats = {
       messageCount: this.messages.length,
-      estimatedTokens: this.getTotalTokens(),
+      estimatedTokens: this.tokenUsage.prompt_tokens, // Use actual tokens from API
       userMessages: 0,
       assistantMessages: 0,
       systemMessages: this.systemMessage ? 1 : 0,
