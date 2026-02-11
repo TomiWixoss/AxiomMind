@@ -36,6 +36,12 @@ const ConfigSchema = z.object({
   database: z.object({
     path: z.string().default('./data/bot-memory.db'),
   }),
+  
+  // Memory Management
+  memory: z.object({
+    maxTokens: z.number().default(200000), // stepfun-ai/step-3.5-flash has 256K context
+    keepMessages: z.number().default(100),
+  }),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -66,6 +72,10 @@ export const loadConfig = (): Config => {
     },
     database: {
       path: process.env.DB_PATH || './data/bot-memory.db',
+    },
+    memory: {
+      maxTokens: parseInt(process.env.MEMORY_MAX_TOKENS || '200000'),
+      keepMessages: parseInt(process.env.MEMORY_KEEP_MESSAGES || '100'),
     },
   });
   
