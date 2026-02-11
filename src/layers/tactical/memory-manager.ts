@@ -1,7 +1,7 @@
-import type { DatabaseManager } from '../../utils/database.js';
-import type { Message, Goal } from '../../types/index.js';
-import type { WorldStateRecord } from '../../utils/database.js';
-import logger from '../../utils/logger.js';
+import type { DatabaseManager } from '../../utils/database';
+import type { Message, Goal } from '../../types/index';
+import type { WorldStateRecord } from '../../utils/database';
+import logger from '../../utils/logger';
 
 export interface MemoryConfig {
   maxTokens: number;

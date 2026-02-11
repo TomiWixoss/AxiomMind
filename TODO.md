@@ -40,7 +40,7 @@
   - [x] dotenv (env vars)
 
 ### Testing
-- [x] 151 tests, 481 assertions - ALL PASSING ✅
+- [x] 282 tests, 725 assertions - ALL PASSING ✅
   - [x] Unit tests (config, logger, database, memory, bot, tools, AI client, goal planner, tool router)
   - [x] Integration tests (setup)
   - [x] TDD approach
@@ -112,17 +112,25 @@
 - [ ] Error recovery
 - [ ] Multiple bot instances support
 
-### 4. Perception Layer (Priority: MEDIUM)
-- [ ] `src/layers/perception/world-observer.ts`
-  - [ ] Observe nearby blocks (ores, trees, mobs)
-  - [ ] Track position changes
-  - [ ] Detect dangers (lava, cliffs, mobs)
-  - [ ] Update world state in database
-- [ ] `src/layers/perception/inventory-tracker.ts`
-  - [ ] Track inventory changes
-  - [ ] Calculate available resources
-  - [ ] Detect missing items for goals
-- [ ] Unit tests cho perception layer
+### 4. Perception Layer (Priority: MEDIUM) ✅ COMPLETED
+- [x] `src/layers/perception/world-observer.ts` ✅
+  - [x] Observe nearby blocks (ores, trees, mobs)
+  - [x] Track position changes
+  - [x] Detect dangers (lava, cliffs, mobs)
+  - [x] Update world state in database
+  - [x] Automatic observation with configurable interval
+  - [x] Block categorization (ore, wood, stone, dirt)
+  - [x] Entity observation with hostile mob detection
+  - [x] Safety checking for positions
+- [x] `src/layers/perception/inventory-tracker.ts` ✅
+  - [x] Track inventory changes
+  - [x] Calculate available resources
+  - [x] Detect missing items for goals
+  - [x] Inventory categorization (tools, weapons, armor, food, ores, blocks)
+  - [x] Resource checking for speedrun
+  - [x] Crafting availability check
+  - [x] Inventory space management
+- [x] Unit tests cho perception layer (72 tests - ALL PASSING ✅)
 
 ### 5. Execution Layer (Priority: MEDIUM)
 - [ ] `src/layers/execution/actions/mining.ts`
@@ -152,18 +160,22 @@
   - [ ] State persistence
 - [ ] Unit tests cho execution layer (20+ tests)
 
-### 6. Tactical Layer (Priority: MEDIUM)
-- [ ] `src/layers/tactical/task-decomposer.ts`
-  - [ ] Break goals into tasks
-  - [ ] Task prioritization
-  - [ ] Task dependencies
-  - [ ] Task validation
+### 6. Tactical Layer (Priority: MEDIUM) ✅ COMPLETED
+- [x] `src/layers/tactical/task-decomposer.ts` ✅
+  - [x] Break goals into tasks using AI
+  - [x] Task prioritization
+  - [x] Task dependencies management
+  - [x] Task validation
+  - [x] Execution plan creation with dependency resolution
+  - [x] Parallel execution group detection
+  - [x] Task progress tracking
+  - [x] Remaining time estimation
 - [x] `src/layers/tactical/tool-router.ts` ✅ COMPLETED
   - [x] Route LLM tool calls to handlers
   - [x] Validate tool parameters
   - [x] Handle tool errors
   - [x] Return formatted results
-- [x] Unit tests cho tool router (19 tests - ALL PASSING ✅)
+- [x] Unit tests cho tactical layer (67 tests - ALL PASSING ✅)
 
 ### 7. Speedrun Strategy (Priority: MEDIUM)
 - [ ] `src/layers/strategic/speedrun-strategy.ts`
@@ -236,10 +248,10 @@
 - **Utils**: 100% ✅
 - **Types**: 100% ✅
 - **Tools**: 100% ✅ (8 tools with 67 tests)
-- **Tactical Layer**: 67% (MemoryManager ✅, ToolRouter ✅, need TaskDecomposer)
+- **Tactical Layer**: 100% ✅ (MemoryManager ✅, ToolRouter ✅, TaskDecomposer ✅)
 - **Strategic Layer**: 100% ✅ (AIClient ✅, GoalPlanner ✅)
 - **Execution Layer**: 0%
-- **Perception Layer**: 0%
+- **Perception Layer**: 100% ✅ (WorldObserver ✅, InventoryTracker ✅)
 
 ### By Feature
 - **Infrastructure**: 100% ✅
@@ -250,22 +262,22 @@
 - **AI Integration**: 100% ✅ (AIClient + GoalPlanner)
 - **Tool Router**: 100% ✅
 - **Main Integration**: 100% ✅
-- **Perception Layer**: 0% (NEXT)
-- **Task Decomposer**: 0% (NEXT)
-- **Execution Actions**: 0%
-- **AI Main Loop**: 0%
+- **Perception Layer**: 100% ✅ (WorldObserver + InventoryTracker)
+- **Task Decomposer**: 100% ✅ (AI-powered task breakdown)
+- **Execution Actions**: 0% (NEXT)
+- **AI Main Loop**: 0% (NEXT)
 - **Speedrun Logic**: 0%
 
-### Overall Completion: ~65%
+### Overall Completion: ~80%
 
 ---
 
 ## 🎯 Next Session Goals
 
-1. **Perception Layer** - World observer & inventory tracker (PRIORITY)
-2. **Task Decomposer** - Break goals into executable tasks
-3. **Execution Actions** - Mining, crafting, combat workflows
-4. **AI Main Loop** - Decision making cycle (sau khi có đủ support)
+1. **Execution Actions** - Mining, crafting, combat workflows (PRIORITY)
+2. **AI Main Loop** - Decision making cycle
+3. **State Machine** - Bot state management
+4. **Speedrun Strategy** - Optimal progression path
 
 ---
 
@@ -313,4 +325,4 @@ bun run tsc --noEmit
 
 ---
 
-Last Updated: 2025-02-11
+Last Updated: 2026-02-11 (Task Decomposer completed)
