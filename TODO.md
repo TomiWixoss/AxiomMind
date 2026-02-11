@@ -50,15 +50,15 @@
 ## 🔄 Đang Làm / Tiếp Theo
 
 ### 1. Bot Initialization (Priority: HIGH)
-- [ ] `src/core/bot.ts` - Initialize mineflayer bot
-  - [ ] Connect to Minecraft server
-  - [ ] Load all plugins (pathfinder, collectblock, pvp, etc.)
-  - [ ] Event handlers (spawn, chat, error, kicked)
-  - [ ] Health/hunger monitoring
-  - [ ] Auto-eat integration
-  - [ ] Auto-armor integration
-- [ ] Unit tests cho bot initialization
-- [ ] Integration test: bot connect to server
+- [x] `src/core/bot.ts` - Initialize mineflayer bot
+  - [x] Connect to Minecraft server
+  - [x] Load all plugins (pathfinder, collectblock, pvp, etc.)
+  - [x] Event handlers (spawn, chat, error, kicked)
+  - [x] Health/hunger monitoring
+  - [x] Auto-eat integration
+  - [x] Auto-armor integration
+- [x] Unit tests cho bot initialization (7 tests)
+- [ ] Integration test: bot connect to real server
 
 ### 2. Tool Definitions (Priority: HIGH)
 - [ ] `src/tools/tool-definitions.ts` - Define tools cho LLM
@@ -222,22 +222,22 @@
 - **Infrastructure**: 100% ✅
 - **Database**: 100% ✅
 - **Memory Management**: 100% ✅
-- **Bot Initialization**: 0%
+- **Bot Initialization**: 100% ✅
 - **AI Integration**: 0%
 - **Tool System**: 0%
 - **Actions**: 0%
 - **Speedrun Logic**: 0%
 
-### Overall Completion: ~35%
+### Overall Completion: ~40%
 
 ---
 
 ## 🎯 Next Session Goals
 
-1. **Bot Initialization** - Get bot connecting to server
-2. **Tool Definitions** - Define 10-15 basic tools
-3. **AI Client** - Integrate aio-llm with tool calling
-4. **Basic Actions** - Implement mining & navigation
+1. **Tool Definitions** - Define 10-15 basic tools for LLM
+2. **AI Client** - Integrate aio-llm with tool calling
+3. **Basic Actions** - Implement mining & navigation
+4. **Tool Handlers** - Map tool calls to mineflayer actions
 
 ---
 
