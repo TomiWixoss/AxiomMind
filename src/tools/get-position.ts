@@ -4,11 +4,7 @@ export function getPositionDefinition(): ToolDefinition {
   return {
     name: 'get_position',
     description: 'Get the bot\'s current position in the world (x, y, z coordinates) and dimension',
-    parameters: {
-      type: 'object',
-      properties: {},
-      required: [],
-    },
+    parameters: {},
   };
 }
 

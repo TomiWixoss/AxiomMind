@@ -8,8 +8,7 @@ describe('Get Position Tool', () => {
     
     expect(def.name).toBe('get_position');
     expect(def.description).toBeTruthy();
-    expect(def.parameters.type).toBe('object');
-    expect(def.parameters.required).toEqual([]);
+    expect(def.parameters).toBeDefined();
   });
 
   test('handler returns current position', async () => {

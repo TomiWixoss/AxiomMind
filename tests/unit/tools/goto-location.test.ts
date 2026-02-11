@@ -8,11 +8,13 @@ describe('Goto Location Tool', () => {
     
     expect(def.name).toBe('goto_location');
     expect(def.description).toBeTruthy();
-    expect(def.parameters.type).toBe('object');
-    expect(def.parameters.properties.x).toBeDefined();
-    expect(def.parameters.properties.y).toBeDefined();
-    expect(def.parameters.properties.z).toBeDefined();
-    expect(def.parameters.required).toEqual(['x', 'y', 'z']);
+    expect(def.parameters).toBeDefined();
+    expect(def.parameters.x).toBeDefined();
+    expect(def.parameters.y).toBeDefined();
+    expect(def.parameters.z).toBeDefined();
+    expect(def.parameters.x.required).toBe(true);
+    expect(def.parameters.y.required).toBe(true);
+    expect(def.parameters.z.required).toBe(true);
   });
 
   test('handler navigates to location successfully', async () => {

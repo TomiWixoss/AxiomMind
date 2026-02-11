@@ -4,11 +4,7 @@ export function getInventoryDefinition(): ToolDefinition {
   return {
     name: 'get_inventory',
     description: 'Get all items currently in the bot\'s inventory with their counts and slots',
-    parameters: {
-      type: 'object',
-      properties: {},
-      required: [],
-    },
+    parameters: {},
   };
 }
 

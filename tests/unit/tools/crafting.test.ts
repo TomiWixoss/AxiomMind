@@ -8,10 +8,10 @@ describe('Craft Item Tool', () => {
     
     expect(def.name).toBe('craft_item');
     expect(def.description).toBeTruthy();
-    expect(def.parameters.type).toBe('object');
-    expect(def.parameters.properties.itemName).toBeDefined();
-    expect(def.parameters.properties.count).toBeDefined();
-    expect(def.parameters.required).toContain('itemName');
+    expect(def.parameters).toBeDefined();
+    expect(def.parameters.itemName).toBeDefined();
+    expect(def.parameters.itemName.required).toBe(true);
+    expect(def.parameters.count).toBeDefined();
   });
 
   test('handler crafts item successfully', async () => {

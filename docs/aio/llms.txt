@@ -1,0 +1,455 @@
+# AIO LLM Framework
+
+> All-In-One LLM Framework for TypeScript/JavaScript - Simple unified API to call LLMs from multiple providers with automatic fallback, streaming, and tool calling support.
+
+## Installation
+
+```bash
+npm install aio-llm
+```
+
+Get your free Nvidia API key at: https://build.nvidia.com/settings/api-keys
+
+## Basic Usage
+
+```typescript
+import { AIO } from "aio-llm";
+
+// 1. Initialize the framework
+const aio = new AIO({
+  providers: [
+    {
+      provider: "nvidia",
+      apiKeys: [{ key: process.env.NVIDIA_API_KEY }],
+      models: [{ modelId: "stepfun-ai/step-3.5-flash" }],
+    },
+  ],
+});
+
+// 2. Send a message and get response
+const response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    { role: "user", content: "What is TypeScript?" }
+  ],
+  temperature: 0.7,
+  max_tokens: 1000,
+});
+
+console.log(response.choices[0].message.content);
+```
+
+## Streaming Responses
+
+```typescript
+// Get streaming response (real-time output)
+const stream = await aio.chatCompletionStream({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    { role: "user", content: "Write a story about a robot" }
+  ],
+});
+
+// Process each chunk as it arrives
+for await (const chunk of stream) {
+  const chunkStr = chunk.toString();
+  if (chunkStr.startsWith('data: ')) {
+    const data = JSON.parse(chunkStr.slice(6));
+    const content = data.choices?.[0]?.delta?.content;
+    if (content) {
+      process.stdout.write(content); // Print in real-time
+    }
+  }
+}
+```
+
+## Multi-turn Conversations
+
+```typescript
+// Keep conversation history
+const messages = [
+  { role: "user", content: "What is 2+2?" },
+];
+
+let response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages,
+});
+
+// Add assistant response to history
+messages.push({
+  role: "assistant",
+  content: response.choices[0].message.content,
+});
+
+// Continue conversation
+messages.push({
+  role: "user",
+  content: "Now multiply that by 3",
+});
+
+response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages,
+});
+```
+
+## Tool Calling (Function Calling)
+
+```typescript
+// 1. Define available tools
+const tools = [
+  {
+    name: "get_weather",
+    description: "Get current weather for a city",
+    parameters: {
+      city: {
+        type: "string",
+        description: "City name (e.g., Tokyo, London)",
+        required: true,
+      },
+      unit: {
+        type: "string",
+        description: "Temperature unit",
+        required: false,
+        enum: ["celsius", "fahrenheit"],
+        default: "celsius",
+      },
+    },
+  },
+  {
+    name: "search_web",
+    description: "Search the web for information",
+    parameters: {
+      query: {
+        type: "string",
+        description: "Search query",
+        required: true,
+      },
+    },
+  },
+];
+
+// 2. Implement tool handlers
+async function handleToolCall(call) {
+  console.log(`Calling tool: ${call.name}`, call.params);
+  
+  if (call.name === "get_weather") {
+    // Your weather API logic here
+    return {
+      temperature: 22,
+      condition: "Sunny",
+      city: call.params.city,
+      unit: call.params.unit,
+    };
+  }
+  
+  if (call.name === "search_web") {
+    // Your search logic here
+    return {
+      results: ["Result 1", "Result 2"],
+      query: call.params.query,
+    };
+  }
+  
+  throw new Error(`Unknown tool: ${call.name}`);
+}
+
+// 3. Use tools in streaming
+const stream = await aio.chatCompletionStream({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    { role: "user", content: "What's the weather in Tokyo and Paris?" }
+  ],
+  tools,
+  onToolCall: handleToolCall,
+  maxToolIterations: 5, // Max tool calls in one request
+});
+
+// 4. Handle tool events and text
+stream.on("data", (chunk) => {
+  const data = JSON.parse(chunk.toString().slice(6));
+  
+  // Tool call events
+  if (data.tool_call) {
+    const event = data.tool_call;
+    if (event.type === "executing") {
+      console.log(`\n🔧 Calling: ${event.call.name}`);
+    } else if (event.type === "success") {
+      console.log(`✅ Result:`, event.result);
+    } else if (event.type === "error") {
+      console.log(`❌ Error:`, event.error);
+    }
+  }
+  
+  // Text content
+  if (data.choices[0]?.delta?.content) {
+    process.stdout.write(data.choices[0].delta.content);
+  }
+});
+
+stream.on("end", () => console.log("\n\nDone!"));
+```
+
+## JSON Mode (Structured Output)
+
+```typescript
+// Get response as valid JSON
+const response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    {
+      role: "user",
+      content: "Extract: Product: iPhone 15, Price: $999, Rating: 4.5/5"
+    }
+  ],
+  response_format: { type: "json_object" },
+});
+
+const data = JSON.parse(response.choices[0].message.content);
+console.log(data); // { product: "iPhone 15", price: 999, rating: 4.5 }
+```
+
+## Configuration Options
+
+```typescript
+const aio = new AIO({
+  providers: [
+    {
+      provider: "nvidia",
+      apiKeys: [
+        { 
+          key: "key1", 
+          priority: 10,      // Higher = used first
+          dailyLimit: 1000,  // Max requests per day
+        },
+        { 
+          key: "key2", 
+          priority: 5,       // Backup key
+        },
+      ],
+      models: [
+        { 
+          modelId: "stepfun-ai/step-3.5-flash",
+          priority: 10,
+        },
+      ],
+      priority: 10,          // Provider priority
+    },
+  ],
+  maxRetries: 3,             // Retry failed requests
+  retryDelay: 1000,          // Wait 1s between retries
+  enableLogging: true,       // Log requests/errors
+});
+```
+
+## Token Usage Tracking
+
+Every response includes token usage information for cost management and history trimming:
+
+```typescript
+const response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    { role: "user", content: "Hello!" }
+  ],
+});
+
+// Access token usage
+console.log(response.usage);
+// {
+//   prompt_tokens: 18,      // Input tokens (your messages)
+//   completion_tokens: 204, // Output tokens (AI response)
+//   total_tokens: 222       // Total tokens used
+// }
+```
+
+### Managing Conversation History
+
+As conversation grows, prompt_tokens increases. Monitor and trim history when needed:
+
+```typescript
+const messages = [];
+const MAX_TOKENS = 4000; // Your limit
+
+// Add user message
+messages.push({ role: "user", content: "What is TypeScript?" });
+
+const response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages,
+});
+
+// Check token usage
+if (response.usage.prompt_tokens > MAX_TOKENS) {
+  // Remove old messages (keep system prompt if any)
+  messages.splice(1, 2); // Remove oldest user+assistant pair
+  console.log("Trimmed history due to token limit");
+}
+
+// Add assistant response to history
+messages.push({
+  role: "assistant",
+  content: response.choices[0].message.content,
+});
+
+// Continue conversation...
+messages.push({ role: "user", content: "Give me an example" });
+```
+
+### Token Usage Examples
+
+```typescript
+// Short message: ~20-50 tokens
+messages: [{ role: "user", content: "Hello" }]
+// → prompt_tokens: ~20
+
+// Medium conversation: ~500-1000 tokens
+messages: [
+  { role: "user", content: "Explain TypeScript" },
+  { role: "assistant", content: "TypeScript is..." }, // ~200 tokens
+  { role: "user", content: "Give example" },
+]
+// → prompt_tokens: ~500
+
+// Long conversation: 2000+ tokens
+// 10+ message exchanges with detailed responses
+// → prompt_tokens: 2000+
+// Consider trimming history at this point
+```
+
+## Request Parameters
+
+```typescript
+await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [...],
+  
+  // Optional parameters
+  temperature: 0.7,          // 0-2, higher = more creative
+  max_tokens: 1000,          // Max response length
+  top_p: 0.9,                // Nucleus sampling
+  stop: ["END", "STOP"],     // Stop sequences
+  
+  // For streaming with tools
+  tools: [...],              // Tool definitions
+  onToolCall: handler,       // Tool handler function
+  maxToolIterations: 5,      // Max tool calls
+  
+  // Response format
+  response_format: { type: "json_object" },
+  
+  // Abort control
+  signal: abortController.signal,
+});
+```
+
+## Error Handling
+
+```typescript
+try {
+  const response = await aio.chatCompletion({
+    provider: "nvidia",
+    model: "stepfun-ai/step-3.5-flash",
+    messages: [{ role: "user", content: "Hello" }],
+  });
+} catch (error) {
+  if (error.message.includes("rate limit")) {
+    console.log("Rate limited, try again later");
+  } else if (error.message.includes("auth")) {
+    console.log("Invalid API key");
+  } else {
+    console.log("Error:", error.message);
+  }
+}
+```
+
+## Cancelling Requests
+
+```typescript
+const controller = new AbortController();
+
+// Cancel after 5 seconds
+setTimeout(() => controller.abort(), 5000);
+
+try {
+  const response = await aio.chatCompletion({
+    provider: "nvidia",
+    model: "stepfun-ai/step-3.5-flash",
+    messages: [{ role: "user", content: "Long task..." }],
+    signal: controller.signal,
+  });
+} catch (error) {
+  if (error.message.includes("cancel")) {
+    console.log("Request was cancelled");
+  }
+}
+```
+
+## Supported Providers
+
+- `nvidia` - Nvidia NIM (stepfun-ai/step-3.5-flash and more)
+- `openrouter` - OpenRouter (30+ free models)
+- `groq` - Groq (ultra-fast inference)
+- `cerebras` - Cerebras (fastest inference)
+- `google-ai` - Google AI (Gemini with multimodal support)
+
+## Common Use Cases
+
+### Chatbot
+```typescript
+const messages = [];
+while (true) {
+  const userInput = await getUserInput();
+  messages.push({ role: "user", content: userInput });
+  
+  const response = await aio.chatCompletion({
+    provider: "nvidia",
+    model: "stepfun-ai/step-3.5-flash",
+    messages,
+  });
+  
+  const reply = response.choices[0].message.content;
+  messages.push({ role: "assistant", content: reply });
+  console.log("Bot:", reply);
+}
+```
+
+### Code Generation
+```typescript
+const response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    {
+      role: "user",
+      content: "Write a TypeScript function to sort an array of objects by a property"
+    }
+  ],
+  temperature: 0.3, // Lower for more focused output
+});
+```
+
+### Data Extraction
+```typescript
+const response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    {
+      role: "user",
+      content: "Extract all email addresses from: Contact us at info@example.com or support@test.org"
+    }
+  ],
+  response_format: { type: "json_object" },
+});
+```

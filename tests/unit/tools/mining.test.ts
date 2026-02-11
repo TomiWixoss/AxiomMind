@@ -8,10 +8,10 @@ describe('Mine Block Tool', () => {
     
     expect(def.name).toBe('mine_block');
     expect(def.description).toBeTruthy();
-    expect(def.parameters.type).toBe('object');
-    expect(def.parameters.properties.blockType).toBeDefined();
-    expect(def.parameters.properties.count).toBeDefined();
-    expect(def.parameters.required).toContain('blockType');
+    expect(def.parameters).toBeDefined();
+    expect(def.parameters.blockType).toBeDefined();
+    expect(def.parameters.blockType.required).toBe(true);
+    expect(def.parameters.count).toBeDefined();
   });
 
   test('handler mines single block successfully', async () => {

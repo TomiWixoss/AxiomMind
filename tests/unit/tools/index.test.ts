@@ -43,7 +43,6 @@ describe('Tool Registry', () => {
       expect(def.name).toBeTruthy();
       expect(def.description).toBeTruthy();
       expect(def.parameters).toBeDefined();
-      expect(def.parameters.type).toBe('object');
     }
   });
 
@@ -114,15 +113,14 @@ describe('Tool Registry', () => {
     const definitions = getAllToolDefinitions();
     
     for (const def of definitions) {
-      expect(def.parameters.properties).toBeDefined();
-      expect(def.parameters.required).toBeDefined();
-      expect(Array.isArray(def.parameters.required)).toBe(true);
+      expect(def.parameters).toBeDefined();
       
-      // Check each property has type and description
-      for (const [propName, prop] of Object.entries(def.parameters.properties)) {
+      // Check each parameter has type and description
+      for (const [propName, prop] of Object.entries(def.parameters)) {
         expect(prop).toBeDefined();
         expect((prop as any).type).toBeTruthy();
         expect((prop as any).description).toBeTruthy();
+        expect((prop as any).required).toBeDefined();
       }
     }
   });

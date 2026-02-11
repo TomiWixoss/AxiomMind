@@ -5,22 +5,21 @@ export function gotoLocationDefinition(): ToolDefinition {
     name: 'goto_location',
     description: 'Navigate the bot to a specific coordinate (x, y, z) using pathfinding',
     parameters: {
-      type: 'object',
-      properties: {
-        x: {
-          type: 'number',
-          description: 'X coordinate',
-        },
-        y: {
-          type: 'number',
-          description: 'Y coordinate (height)',
-        },
-        z: {
-          type: 'number',
-          description: 'Z coordinate',
-        },
+      x: {
+        type: 'number',
+        description: 'X coordinate',
+        required: true,
       },
-      required: ['x', 'y', 'z'],
+      y: {
+        type: 'number',
+        description: 'Y coordinate (height)',
+        required: true,
+      },
+      z: {
+        type: 'number',
+        description: 'Z coordinate',
+        required: true,
+      },
     },
   };
 }

@@ -8,10 +8,10 @@ describe('Get Nearby Blocks Tool', () => {
     
     expect(def.name).toBe('get_nearby_blocks');
     expect(def.description).toBeTruthy();
-    expect(def.parameters.type).toBe('object');
-    expect(def.parameters.properties.blockType).toBeDefined();
-    expect(def.parameters.properties.maxDistance).toBeDefined();
-    expect(def.parameters.required).toContain('blockType');
+    expect(def.parameters).toBeDefined();
+    expect(def.parameters.blockType).toBeDefined();
+    expect(def.parameters.blockType.required).toBe(true);
+    expect(def.parameters.maxDistance).toBeDefined();
   });
 
   test('handler finds nearby blocks', async () => {

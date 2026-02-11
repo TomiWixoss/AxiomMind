@@ -4,11 +4,7 @@ export function getHealthDefinition(): ToolDefinition {
   return {
     name: 'get_health',
     description: 'Get the bot\'s current health, food level, and saturation status',
-    parameters: {
-      type: 'object',
-      properties: {},
-      required: [],
-    },
+    parameters: {},
   };
 }
 

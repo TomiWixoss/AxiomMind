@@ -5,20 +5,19 @@ export function mineBlockDefinition(): ToolDefinition {
     name: 'mine_block',
     description: 'Mine blocks of a specific type. Bot will find, navigate to, and mine the blocks automatically.',
     parameters: {
-      type: 'object',
-      properties: {
-        blockType: {
-          type: 'string',
-          description: 'The type of block to mine (e.g., "stone", "iron_ore", "oak_log")',
-        },
-        count: {
-          type: 'number',
-          description: 'Number of blocks to mine (default: 1)',
-          minimum: 1,
-          maximum: 64,
-        },
+      blockType: {
+        type: 'string',
+        description: 'The type of block to mine (e.g., "stone", "iron_ore", "oak_log")',
+        required: true,
       },
-      required: ['blockType'],
+      count: {
+        type: 'number',
+        description: 'Number of blocks to mine (default: 1)',
+        required: false,
+        minimum: 1,
+        maximum: 64,
+        default: 1,
+      },
     },
   };
 }

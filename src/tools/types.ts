@@ -1,22 +1,20 @@
-// Tool types - shared across all tools
+// Tool types - shared across all tools (AIO-LLM format)
 
 export interface ToolDefinition {
   name: string;
   description: string;
-  parameters: {
-    type: 'object';
-    properties: Record<string, ParameterDefinition>;
-    required: string[];
-  };
+  parameters: Record<string, ParameterDefinition>;
 }
 
 export interface ParameterDefinition {
   type: 'string' | 'number' | 'boolean' | 'array' | 'object';
   description: string;
+  required: boolean;
   enum?: string[];
   items?: ParameterDefinition;
   minimum?: number;
   maximum?: number;
+  default?: any;
 }
 
 export interface ToolResult {

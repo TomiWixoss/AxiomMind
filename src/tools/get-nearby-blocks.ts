@@ -5,20 +5,19 @@ export function getNearbyBlocksDefinition(): ToolDefinition {
     name: 'get_nearby_blocks',
     description: 'Find nearby blocks of a specific type within a given distance. Returns positions and distances.',
     parameters: {
-      type: 'object',
-      properties: {
-        blockType: {
-          type: 'string',
-          description: 'The type of block to search for (e.g., "stone", "iron_ore", "oak_log")',
-        },
-        maxDistance: {
-          type: 'number',
-          description: 'Maximum search distance in blocks (default: 16, max: 128)',
-          minimum: 1,
-          maximum: 128,
-        },
+      blockType: {
+        type: 'string',
+        description: 'The type of block to search for (e.g., "stone", "iron_ore", "oak_log")',
+        required: true,
       },
-      required: ['blockType'],
+      maxDistance: {
+        type: 'number',
+        description: 'Maximum search distance in blocks (default: 16, max: 128)',
+        required: false,
+        minimum: 1,
+        maximum: 128,
+        default: 16,
+      },
     },
   };
 }

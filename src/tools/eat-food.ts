@@ -4,11 +4,7 @@ export function eatFoodDefinition(): ToolDefinition {
   return {
     name: 'eat_food',
     description: 'Eat food from inventory to restore hunger. Bot will automatically select best available food.',
-    parameters: {
-      type: 'object',
-      properties: {},
-      required: [],
-    },
+    parameters: {},
   };
 }
 

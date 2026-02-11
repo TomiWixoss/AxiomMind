@@ -5,20 +5,19 @@ export function craftItemDefinition(): ToolDefinition {
     name: 'craft_item',
     description: 'Craft an item using available materials. Bot will find crafting table if needed.',
     parameters: {
-      type: 'object',
-      properties: {
-        itemName: {
-          type: 'string',
-          description: 'The item to craft (e.g., "wooden_pickaxe", "stone_sword", "crafting_table")',
-        },
-        count: {
-          type: 'number',
-          description: 'Number of items to craft (default: 1)',
-          minimum: 1,
-          maximum: 64,
-        },
+      itemName: {
+        type: 'string',
+        description: 'The item to craft (e.g., "wooden_pickaxe", "stone_sword", "crafting_table")',
+        required: true,
       },
-      required: ['itemName'],
+      count: {
+        type: 'number',
+        description: 'Number of items to craft (default: 1)',
+        required: false,
+        minimum: 1,
+        maximum: 64,
+        default: 1,
+      },
     },
   };
 }
