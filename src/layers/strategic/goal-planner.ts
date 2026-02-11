@@ -99,11 +99,37 @@ Priority: 1 = highest, higher numbers = lower priority.
 Focus on speedrun efficiency. Be specific and actionable.`;
 
       const response = await this.aiClient.chat([
-        { role: 'system', content: 'You are a Minecraft speedrun planning assistant. Always respond with valid JSON.' },
+        { role: 'system', content: 'You are a Minecraft speedrun planning assistant.' },
         { role: 'user', content: prompt },
       ], {
         temperature: 0.7,
-        responseFormat: { type: 'json_object' },
+        responseFormat: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'goal_decomposition',
+            strict: true,
+            schema: {
+              type: 'object',
+              properties: {
+                subGoals: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'number' },
+                      description: { type: 'string' },
+                      priority: { type: 'number' },
+                    },
+                    required: ['id', 'description', 'priority'],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ['subGoals'],
+              additionalProperties: false,
+            },
+          },
+        },
       });
 
       // Parse AI response
@@ -146,11 +172,30 @@ Return ONLY a valid JSON object:
 Be specific and focus on speedrun efficiency.`;
 
       const response = await this.aiClient.chat([
-        { role: 'system', content: 'You are a Minecraft speedrun action planner. Always respond with valid JSON.' },
+        { role: 'system', content: 'You are a Minecraft speedrun action planner.' },
         { role: 'user', content: prompt },
       ], {
         temperature: 0.7,
-        responseFormat: { type: 'json_object' },
+        responseFormat: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'action_plan',
+            strict: true,
+            schema: {
+              type: 'object',
+              properties: {
+                action: { type: 'string' },
+                reasoning: { type: 'string' },
+                parameters: {
+                  type: 'object',
+                  additionalProperties: true,
+                },
+              },
+              required: ['action', 'reasoning'],
+              additionalProperties: false,
+            },
+          },
+        },
       });
 
       const action = JSON.parse(response.content);
@@ -194,11 +239,30 @@ Return ONLY a valid JSON object:
 Progress: 0.0 to 1.0 (0 = not started, 1 = completed)`;
 
       const response = await this.aiClient.chat([
-        { role: 'system', content: 'You are a Minecraft speedrun progress evaluator. Always respond with valid JSON.' },
+        { role: 'system', content: 'You are a Minecraft speedrun progress evaluator.' },
         { role: 'user', content: prompt },
       ], {
         temperature: 0.7,
-        responseFormat: { type: 'json_object' },
+        responseFormat: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'progress_evaluation',
+            strict: true,
+            schema: {
+              type: 'object',
+              properties: {
+                progress: { type: 'number' },
+                assessment: { type: 'string' },
+                nextSteps: {
+                  type: 'array',
+                  items: { type: 'string' },
+                },
+              },
+              required: ['progress', 'assessment', 'nextSteps'],
+              additionalProperties: false,
+            },
+          },
+        },
       });
 
       const evaluation = JSON.parse(response.content);
