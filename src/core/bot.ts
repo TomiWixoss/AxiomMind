@@ -30,6 +30,7 @@ export class BotManager {
       username: config.minecraft.username,
       version: config.minecraft.version || '1.21.1',
       auth: 'offline', // Offline mode for local servers
+      hideErrors: false, // Show all errors for debugging
     });
 
     this.setupPlugins();

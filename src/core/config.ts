@@ -8,9 +8,9 @@ const ConfigSchema = z.object({
   // Minecraft server
   minecraft: z.object({
     host: z.string().default('localhost'),
-    port: z.number().default(25565),
+    port: z.number().default(50689),
     username: z.string().default('SpeedrunBot'),
-    version: z.string().optional(),
+    version: z.string().optional().default('1.21.9'),
   }),
   
   // AI/LLM settings

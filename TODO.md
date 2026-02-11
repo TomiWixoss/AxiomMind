@@ -40,8 +40,8 @@
   - [x] dotenv (env vars)
 
 ### Testing
-- [x] 131 tests, 443 assertions - ALL PASSING ✅
-  - [x] Unit tests (config, logger, database, memory, bot, tools, AI client, tool router)
+- [x] 151 tests, 481 assertions - ALL PASSING ✅
+  - [x] Unit tests (config, logger, database, memory, bot, tools, AI client, goal planner, tool router)
   - [x] Integration tests (setup)
   - [x] TDD approach
 
@@ -58,7 +58,7 @@
   - [x] Auto-eat integration
   - [x] Auto-armor integration
 - [x] Unit tests cho bot initialization (7 tests)
-- [ ] Integration test: bot connect to real server
+- [ ] Integration test: bot connect to real server (needs running server)
 
 ### 2. Tool Definitions (Priority: HIGH) ✅ COMPLETED
 - [x] `src/tools/` - Define tools cho LLM (8 tools created)
@@ -81,12 +81,16 @@
   - [x] Tool calling integration
   - [x] Token usage tracking
   - [x] Error handling & retries
+  - [x] JSON Schema mode support
 - [x] Unit tests cho AI client (7 tests - ALL PASSING ✅)
-- [ ] `src/layers/strategic/goal-planner.ts` - AI goal planning
-  - [ ] Main goal: "Beat Ender Dragon"
-  - [ ] Sub-goal decomposition
-  - [ ] Priority management
-  - [ ] Goal status tracking
+- [x] `src/layers/strategic/goal-planner.ts` - AI goal planning ✅ COMPLETED
+  - [x] Main goal: "Beat Ender Dragon"
+  - [x] Sub-goal decomposition with JSON Schema
+  - [x] Priority management
+  - [x] Goal status tracking
+  - [x] Progress evaluation
+  - [x] Next action planning
+- [x] Unit tests cho goal planner (20 tests - ALL PASSING ✅)
 
 ### 4. Tool Router (Priority: HIGH) ✅ COMPLETED
 - [x] `src/layers/tactical/tool-router.ts` - Route tool calls
@@ -95,6 +99,18 @@
   - [x] Batch execution support
   - [x] Error handling
 - [x] Unit tests cho tool router (19 tests - ALL PASSING ✅)
+
+### 5. Main Entry Point (Priority: HIGH) ✅ COMPLETED
+- [x] `index.ts` - Main application
+  - [x] Initialize all components
+  - [x] Component integration
+  - [x] Graceful shutdown
+  - [x] Status monitoring
+- [x] Unit tests cho main integration (11 tests - ALL PASSING ✅)
+- [x] Test script (`test-bot.ts`) for manual testing
+- [ ] AI main loop (decision making cycle)
+- [ ] Error recovery
+- [ ] Multiple bot instances support
 
 ### 4. Perception Layer (Priority: MEDIUM)
 - [ ] `src/layers/perception/world-observer.ts`
@@ -221,7 +237,7 @@
 - **Types**: 100% ✅
 - **Tools**: 100% ✅ (8 tools with 67 tests)
 - **Tactical Layer**: 67% (MemoryManager ✅, ToolRouter ✅, need TaskDecomposer)
-- **Strategic Layer**: 50% (AIClient ✅, need GoalPlanner)
+- **Strategic Layer**: 100% ✅ (AIClient ✅, GoalPlanner ✅)
 - **Execution Layer**: 0%
 - **Perception Layer**: 0%
 
@@ -235,7 +251,7 @@
 - **Actions**: 0%
 - **Speedrun Logic**: 0%
 
-### Overall Completion: ~55%
+### Overall Completion: ~60%
 
 ---
 
