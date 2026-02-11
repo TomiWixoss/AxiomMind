@@ -4,8 +4,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun run index.ts",
-    "dev": "bun --watch index.ts"
+    "start": "bun run src/index.ts",
+    "dev": "bun --watch src/index.ts",
+    "test": "bun test",
+    "test:unit": "bun test tests/unit",
+    "test:integration": "bun test tests/integration",
+    "test:watch": "bun test --watch"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -15,6 +19,32 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "mineflayer": "^4.34.0"
+    "@nxg-org/mineflayer-custom-pvp": "^1.7.6",
+    "aio-llm": "^1.0.4",
+    "dotenv": "^17.2.4",
+    "minecraft-data": "^3.103.0",
+    "minecrafthawkeye": "^1.3.9",
+    "mineflayer": "^4.34.0",
+    "mineflayer-armor-manager": "^2.0.1",
+    "mineflayer-auto-eat": "^5.0.3",
+    "mineflayer-blockfinder": "^0.0.7",
+    "mineflayer-builder": "^1.0.1",
+    "mineflayer-collectblock": "^1.6.0",
+    "mineflayer-crafting-util": "^0.2.0",
+    "mineflayer-dashboard": "^2.0.1",
+    "mineflayer-movement": "^0.4.4",
+    "mineflayer-navigate": "^0.0.10",
+    "mineflayer-pathfinder": "^2.4.5",
+    "mineflayer-pvp": "^1.3.2",
+    "mineflayer-scaffold": "^1.0.0",
+    "mineflayer-statemachine": "^1.7.0",
+    "mineflayer-tool": "^1.2.0",
+    "mineflayer-toolbox": "^1.2.1",
+    "mineflayer-web-inventory": "^1.8.5",
+    "prismarine-recipe": "^1.3.1",
+    "prismarine-viewer": "^1.33.0",
+    "vec3": "^0.1.10",
+    "winston": "^3.19.0",
+    "zod": "^4.3.6"
   }
 }
