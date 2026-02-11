@@ -7,6 +7,7 @@ export interface ChatOptions {
   temperature?: number;
   maxTokens?: number;
   stream?: boolean;
+  responseFormat?: { type: 'json_object' };
 }
 
 export interface ChatResponse {
@@ -84,6 +85,7 @@ export class AIClient {
       this.logger.debug('Sending chat request', {
         messageCount: formattedMessages.length,
         model: this.config.model,
+        responseFormat: options.responseFormat,
       });
 
       const response = await this.aio.chatCompletion({
@@ -93,6 +95,7 @@ export class AIClient {
         temperature: options.temperature ?? this.config.temperature,
         max_tokens: options.maxTokens ?? this.config.maxTokens,
         top_p: this.config.topP,
+        response_format: options.responseFormat,
       });
 
       this.logger.debug('Received chat response', {

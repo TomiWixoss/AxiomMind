@@ -198,15 +198,17 @@ stream.on("end", () => console.log("\n\nDone!"));
 
 ## JSON Mode (Structured Output)
 
+### Simple JSON Mode
+
 ```typescript
-// Get response as valid JSON
+// Get response as valid JSON (no schema validation)
 const response = await aio.chatCompletion({
   provider: "nvidia",
   model: "stepfun-ai/step-3.5-flash",
   messages: [
     {
       role: "user",
-      content: "Extract: Product: iPhone 15, Price: $999, Rating: 4.5/5"
+      content: "Extract: Product: iPhone 15, Price: $999, Rating: 4.5/5. Return as JSON."
     }
   ],
   response_format: { type: "json_object" },
@@ -214,6 +216,128 @@ const response = await aio.chatCompletion({
 
 const data = JSON.parse(response.choices[0].message.content);
 console.log(data); // { product: "iPhone 15", price: 999, rating: 4.5 }
+```
+
+### JSON Schema Mode (Strict Validation)
+
+```typescript
+// Get response that MUST match your schema
+const response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    {
+      role: "user",
+      content: "Extract: iPhone 15 Pro - Great camera, expensive. Rating: 4.5/5"
+    }
+  ],
+  response_format: {
+    type: "json_schema",
+    json_schema: {
+      name: "product_review",
+      strict: true, // Enforce strict schema compliance
+      schema: {
+        type: "object",
+        properties: {
+          product_name: { 
+            type: "string",
+            description: "Name of the product"
+          },
+          rating: { 
+            type: "number",
+            description: "Rating from 0 to 5"
+          },
+          sentiment: {
+            type: "string",
+            enum: ["positive", "negative", "neutral"],
+            description: "Overall sentiment"
+          },
+          key_features: {
+            type: "array",
+            items: { type: "string" },
+            description: "List of key features mentioned"
+          },
+          price_mentioned: {
+            type: "boolean",
+            description: "Whether price was mentioned"
+          },
+        },
+        required: ["product_name", "rating", "sentiment", "key_features", "price_mentioned"],
+        additionalProperties: false, // No extra fields allowed
+      },
+    },
+  },
+});
+
+const data = JSON.parse(response.choices[0].message.content);
+// Guaranteed to match schema:
+// {
+//   product_name: "iPhone 15 Pro",
+//   rating: 4.5,
+//   sentiment: "positive",
+//   key_features: ["Great camera"],
+//   price_mentioned: true
+// }
+```
+
+### Complex Schema Example
+
+```typescript
+const response = await aio.chatCompletion({
+  provider: "nvidia",
+  model: "stepfun-ai/step-3.5-flash",
+  messages: [
+    {
+      role: "user",
+      content: "Analyze this code and extract information: function add(a, b) { return a + b; }"
+    }
+  ],
+  response_format: {
+    type: "json_schema",
+    json_schema: {
+      name: "code_analysis",
+      strict: true,
+      schema: {
+        type: "object",
+        properties: {
+          function_name: { type: "string" },
+          parameters: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                type: { type: "string" },
+              },
+              required: ["name", "type"],
+              additionalProperties: false,
+            },
+          },
+          return_type: { type: "string" },
+          complexity: {
+            type: "string",
+            enum: ["simple", "medium", "complex"],
+          },
+          description: { type: "string" },
+        },
+        required: ["function_name", "parameters", "return_type", "complexity", "description"],
+        additionalProperties: false,
+      },
+    },
+  },
+});
+
+const analysis = JSON.parse(response.choices[0].message.content);
+// {
+//   function_name: "add",
+//   parameters: [
+//     { name: "a", type: "number" },
+//     { name: "b", type: "number" }
+//   ],
+//   return_type: "number",
+//   complexity: "simple",
+//   description: "Adds two numbers together"
+// }
 ```
 
 ## Configuration Options
