@@ -57,7 +57,7 @@ export class AxiomMind {
   private initialized: boolean;
   private startTime: number;
   private running: boolean = false;
-  private decisionLoopInterval?: Timer;
+  private isProcessing: boolean = false;
 
   constructor(config: Config) {
     this.config = config;
@@ -85,8 +85,12 @@ export class AxiomMind {
     );
     logger.info('✓ Memory manager initialized');
 
-    // Initialize AI client
-    this.aiClient = new AIClient(this.config, logger);
+    // Initialize tool router (needed by AI client)
+    this.toolRouter = new ToolRouter(bot, logger);
+    logger.info('✓ Tool router initialized');
+
+    // Initialize AI client with ToolRouter
+    this.aiClient = new AIClient(this.config, logger, this.toolRouter);
     logger.info('✓ AI client initialized');
 
     // Initialize goal planner
@@ -97,10 +101,6 @@ export class AxiomMind {
       this.aiClient
     );
     logger.info('✓ Goal planner initialized');
-
-    // Initialize tool router
-    this.toolRouter = new ToolRouter(bot, logger);
-    logger.info('✓ Tool router initialized');
 
     // Initialize task decomposer
     this.taskDecomposer = new TaskDecomposer(
@@ -136,35 +136,18 @@ export class AxiomMind {
    * Setup system message for AI
    */
   private setupSystemMessage(): void {
-    const systemMessage = `You are AxiomMind, an advanced Minecraft AI speedrun bot.
+    const systemMessage = `You are AxiomMind, an AI controlling a Minecraft bot.
 
-Your main goal: ${this.goalPlanner.getMainGoal()}
+GOAL: ${this.goalPlanner.getMainGoal()}
 
-You have access to these tools:
-${getAllToolDefinitions().map(tool => `- ${tool.name}: ${tool.description}`).join('\n')}
-
-Your decision-making process:
-1. Observe the world state (position, health, food, inventory, nearby blocks/entities)
-2. Determine current speedrun phase and requirements
-3. Plan next action based on strategic goals
-4. Execute actions using available tools
-5. Learn from results and adapt strategy
-
-Key principles:
-- Prioritize speedrun efficiency
-- Manage health and food carefully
-- Gather resources in optimal order
-- Avoid unnecessary risks
-- Use tools effectively
-
-Always respond with clear reasoning and specific tool calls when needed.`;
+Use available tools to control the bot and complete the goal efficiently.`;
 
     this.memoryManager.setSystemMessage(systemMessage);
     logger.debug('System message configured');
   }
 
   /**
-   * Start the AI decision-making loop
+   * Start the AI decision-making
    */
   async start(): Promise<void> {
     if (this.running) {
@@ -185,21 +168,18 @@ Always respond with clear reasoning and specific tool calls when needed.`;
     // Initial observation
     await this.observe();
 
-    // Start decision loop
+    // Start running
     this.running = true;
-    this.decisionLoopInterval = setInterval(() => {
-      this.decisionLoop().catch(error => {
-        logger.error('Error in decision loop', error);
-      });
-    }, 10000); // Every 10 seconds
 
     logger.info('=== AxiomMind is now running ===');
-    logger.info('Decision loop: Every 10 seconds');
     logger.info('Main goal: ' + this.goalPlanner.getMainGoal());
+
+    // Trigger first decision cycle
+    this.triggerDecisionCycle();
   }
 
   /**
-   * Stop the AI decision-making loop
+   * Stop the AI decision-making
    */
   async stop(): Promise<void> {
     if (!this.running) {
@@ -209,12 +189,7 @@ Always respond with clear reasoning and specific tool calls when needed.`;
     logger.info('=== Stopping AxiomMind ===');
 
     this.running = false;
-
-    // Stop decision loop
-    if (this.decisionLoopInterval) {
-      clearInterval(this.decisionLoopInterval);
-      this.decisionLoopInterval = undefined;
-    }
+    this.isProcessing = false;
 
     // Stop perception
     this.worldObserver.stopObserving();
@@ -226,15 +201,33 @@ Always respond with clear reasoning and specific tool calls when needed.`;
   }
 
   /**
-   * Main AI decision-making loop
+   * Trigger a new decision cycle (called when AI finishes processing)
    */
-  private async decisionLoop(): Promise<void> {
+  private triggerDecisionCycle(): void {
+    if (!this.running) {
+      return;
+    }
+
+    if (this.isProcessing) {
+      logger.debug('Already processing, skipping trigger');
+      return;
+    }
+
+    // Run decision cycle asynchronously
+    this.decisionCycle().catch(error => {
+      logger.error('Error in decision cycle', error);
+      this.isProcessing = false;
+      // Retry after error
+      setTimeout(() => this.triggerDecisionCycle(), 5000);
+    });
+  }
+
+  /**
+   * Main AI decision-making cycle
+   */
+  private async decisionCycle(): Promise<void> {
     try {
-      // Skip if bot is busy
-      if (this.stateMachine.isBusy()) {
-        logger.debug('Bot is busy, skipping decision cycle');
-        return;
-      }
+      this.isProcessing = true;
 
       logger.info('--- Decision Cycle Start ---');
 
@@ -257,22 +250,17 @@ Always respond with clear reasoning and specific tool calls when needed.`;
       // 3. TACTICAL: Build context and get AI decision
       await this.stateMachine.transition(BotState.PLANNING, 'Planning next action');
 
-      const context = this.memoryManager.buildContext({
-        includeWorldState: true,
-        includeGoals: true,
-      });
-
       // Add current situation to context
       const situationPrompt = `Current Situation:
-- Speedrun Phase: ${phase} (${this.speedrunStrategy.getProgress()}% complete)
-- Strategic Priority: ${decision.priority}
-- Recommended Action: ${decision.action}
+- Phase: ${phase} (${this.speedrunStrategy.getProgress()}% complete)
+- Priority: ${decision.priority}
+- Recommended: ${decision.action}
 - Reason: ${decision.reason}
 - Ready for next phase: ${readiness.ready ? 'Yes' : 'No'}
 ${!readiness.ready ? `- Missing: ${readiness.missing.join(', ')}` : ''}
-- Estimated time remaining: ${this.speedrunStrategy.getEstimatedTimeRemaining()} minutes
+- Time remaining: ~${this.speedrunStrategy.getEstimatedTimeRemaining()} min
 
-What should I do next? Use available tools to execute the action.`;
+Execute the recommended action using available tools.`;
 
       this.memoryManager.addMessage({
         role: 'user',
@@ -281,11 +269,43 @@ What should I do next? Use available tools to execute the action.`;
 
       // Get AI response with tools
       const tools = getAllToolDefinitions();
+      const messages = this.memoryManager.getMessages();
+      
+      // DEBUG: Log FULL request to AI
+      logger.info('=== SENDING TO AI ===');
+      logger.info('Message count: ' + messages.length);
+      messages.forEach((msg, i) => {
+        logger.info(`Message ${i} [${msg.role}]: ${msg.content.substring(0, 500)}${msg.content.length > 500 ? '...' : ''}`);
+      });
+      logger.info('Tool count: ' + tools.length);
+      tools.forEach((tool, i) => {
+        logger.info(`Tool ${i}: ${tool.name} - ${tool.description}`);
+        logger.info(`  Parameters: ${JSON.stringify(Object.keys(tool.parameters))}`);
+      });
+      logger.info('=====================');
+      
       const response = await this.aiClient.chatWithTools(
-        this.memoryManager.getMessages(),
+        messages,
         tools,
-        { temperature: 0.7 }
+        { 
+          temperature: 0.7,
+          maxTokens: this.config.ai.maxTokens,
+        }
       );
+      
+      // DEBUG: Log AI response
+      logger.info('=== AI RESPONSE ===');
+      logger.info('Content length: ' + (response.content?.length || 0));
+      if (response.content) {
+        logger.info('Content preview: ' + response.content.substring(0, 200));
+      }
+      logger.info('Tool calls executed: ' + (response.toolCalls?.length || 0));
+      if (response.toolCalls && response.toolCalls.length > 0) {
+        response.toolCalls.forEach((tc, i) => {
+          logger.info(`  [${i}] ${tc.name}: ${JSON.stringify(tc.arguments)}`);
+        });
+      }
+      logger.info('===================');
 
       // Update token usage
       if (response.usage) {
@@ -298,49 +318,30 @@ What should I do next? Use available tools to execute the action.`;
           role: 'assistant',
           content: response.content,
         });
-        logger.info('AI Response:', response.content);
+        logger.info('AI Response:', response.content.substring(0, 200) + (response.content.length > 200 ? '...' : ''));
       }
 
-      // 4. EXECUTION: Execute tool calls if any
+      // Tools are already executed by aio-llm via onToolCall handler
+      // Just update state machine based on what was executed
       if (response.toolCalls && response.toolCalls.length > 0) {
-        logger.info(`Executing ${response.toolCalls.length} tool calls`);
+        logger.info(`${response.toolCalls.length} tools were executed by AI`);
 
-        for (const toolCall of response.toolCalls) {
-          // Update state based on tool
-          if (toolCall.name.includes('mine')) {
-            await this.stateMachine.transition(BotState.MINING, 'Mining blocks');
-          } else if (toolCall.name.includes('craft')) {
-            await this.stateMachine.transition(BotState.CRAFTING, 'Crafting items');
-          } else if (toolCall.name.includes('goto')) {
-            await this.stateMachine.transition(BotState.NAVIGATING, 'Navigating');
-          } else if (toolCall.name.includes('eat')) {
-            await this.stateMachine.transition(BotState.EATING, 'Eating food');
-          }
-
-          // Execute tool
-          const result = await this.toolRouter.executeTool({
-            id: toolCall.id,
-            name: toolCall.name,
-            arguments: toolCall.arguments,
-          });
-
-          logger.info('Tool Result:', {
-            tool: toolCall.name,
-            success: result.success,
-            message: result.message,
-          });
-
-          // Add result to memory
-          this.memoryManager.addMessage({
-            role: 'user',
-            content: `Tool ${toolCall.name} result: ${result.message}`,
-          });
+        // Update state based on last tool executed
+        const lastTool = response.toolCalls[response.toolCalls.length - 1];
+        if (lastTool.name.includes('mine')) {
+          await this.stateMachine.transition(BotState.MINING, 'Mining blocks');
+        } else if (lastTool.name.includes('craft')) {
+          await this.stateMachine.transition(BotState.CRAFTING, 'Crafting items');
+        } else if (lastTool.name.includes('goto')) {
+          await this.stateMachine.transition(BotState.NAVIGATING, 'Navigating');
+        } else if (lastTool.name.includes('eat')) {
+          await this.stateMachine.transition(BotState.EATING, 'Eating food');
         }
 
         // Return to idle after execution
         await this.stateMachine.returnToIdle('Actions completed');
       } else {
-        logger.info('No tool calls to execute');
+        logger.info('No tools were executed');
         await this.stateMachine.returnToIdle('No actions needed');
       }
 
@@ -348,9 +349,18 @@ What should I do next? Use available tools to execute the action.`;
       await this.memoryManager.saveToDatabase();
 
       logger.info('--- Decision Cycle Complete ---');
+
+      // Mark as done processing
+      this.isProcessing = false;
+
+      // Trigger next cycle after a short delay
+      setTimeout(() => this.triggerDecisionCycle(), 2000);
     } catch (error) {
-      logger.error('Error in decision loop', error);
-      await this.stateMachine.transitionToError('Decision loop error');
+      logger.error('Error in decision cycle', error);
+      await this.stateMachine.transitionToError('Decision cycle error');
+      this.isProcessing = false;
+      // Retry after error
+      setTimeout(() => this.triggerDecisionCycle(), 5000);
     }
   }
 

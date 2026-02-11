@@ -6,7 +6,7 @@
       "name": "axiommind",
       "dependencies": {
         "@nxg-org/mineflayer-custom-pvp": "^1.7.6",
-        "aio-llm": "^1.0.4",
+        "aio-llm": "^1.0.5",
         "dotenv": "^17.2.4",
         "minecraft-data": "^3.103.0",
         "minecrafthawkeye": "^1.3.9",
@@ -139,7 +139,7 @@
 
     "agentkeepalive": ["agentkeepalive@4.6.0", "", { "dependencies": { "humanize-ms": "^1.2.1" } }, "sha512-kja8j7PjmncONqaTsB8fQ+wE2mSU2DJ9D4XKoJ5PFWIdRMa6SLSN1ff4mOr4jCbfRSsxR4keIiySJU0N9T5hIQ=="],
 
-    "aio-llm": ["aio-llm@1.0.4", "", { "dependencies": { "@google/genai": "^1.34.0", "express": "^5.2.1", "groq-sdk": "^0.37.0", "openai": "^6.15.0", "uuid": "^13.0.0", "winston": "^3.19.0", "zod": "^4.3.6" } }, "sha512-NDmXBJmoO0Fq3C2gfx5Z+m5ObPLk/hOfOPStsbeObaur/5KymUxqgkinEKuvWmMdq6w3O7cPcX9MCEPl1wAbKA=="],
+    "aio-llm": ["aio-llm@1.0.5", "", { "dependencies": { "@google/genai": "^1.34.0", "express": "^5.2.1", "groq-sdk": "^0.37.0", "openai": "^6.15.0", "uuid": "^13.0.0", "winston": "^3.19.0", "zod": "^4.3.6" } }, "sha512-T/BFiOJbuLFv3s1VVzMe+5KqLq2PzOpCB/wxUjl5qm1I0rrtq9ZR38i0edtKUPF5ZYV4Mo25NuKqnoqJKAyKqA=="],
 
     "ajv": ["ajv@6.12.6", "", { "dependencies": { "fast-deep-equal": "^3.1.1", "fast-json-stable-stringify": "^2.0.0", "json-schema-traverse": "^0.4.1", "uri-js": "^4.2.2" } }, "sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g=="],
 

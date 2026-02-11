@@ -39,10 +39,12 @@ export class AIClient {
   private aio: any;
   private config: Config['ai'];
   private logger: any;
+  private toolRouter: any; // ToolRouter instance for executing tools
 
-  constructor(config: Config, logger: any) {
+  constructor(config: Config, logger: any, toolRouter?: any) {
     this.config = config.ai;
     this.logger = logger;
+    this.toolRouter = toolRouter;
 
     // Validate API key
     if (!this.config.apiKey) {
@@ -122,7 +124,7 @@ export class AIClient {
   }
 
   /**
-   * Chat with tool calling support
+   * Chat with tool calling support (STREAMING MODE for stepfun-ai)
    */
   async chatWithTools(
     messages: Message[],
@@ -133,41 +135,106 @@ export class AIClient {
       const formattedMessages = this.formatMessages(messages);
       const formattedTools = this.formatTools(tools);
 
-      this.logger.debug('Sending chat request with tools', {
+      this.logger.debug('Sending STREAMING chat request with tools', {
         messageCount: formattedMessages.length,
         toolCount: formattedTools.length,
         model: this.config.model,
       });
 
-      const response = await this.aio.chatCompletion({
+      // Tool call results storage
+      const toolCalls: ToolCall[] = [];
+      let contentParts: string[] = [];
+
+      // Tool handler that executes tools via ToolRouter
+      const onToolCall = async (call: any) => {
+        this.logger.info('🔧 Tool call detected:', call.name, call.params);
+
+        const toolCallId = call.id || `call_${Date.now()}`;
+        
+        toolCalls.push({
+          id: toolCallId,
+          name: call.name,
+          arguments: call.params,
+        });
+
+        // Execute tool if ToolRouter is available
+        if (this.toolRouter) {
+          try {
+            const result = await this.toolRouter.executeTool({
+              id: toolCallId,
+              name: call.name,
+              arguments: call.params,
+            });
+
+            this.logger.info('✅ Tool executed:', call.name, {
+              success: result.success,
+              message: result.message,
+            });
+
+            // Return result to aio-llm
+            return result.data || result.message || { success: result.success };
+          } catch (error: any) {
+            this.logger.error('❌ Tool execution failed:', call.name, error);
+            return { error: error.message || String(error) };
+          }
+        }
+
+        // Fallback if no ToolRouter
+        this.logger.warn('⚠️ No ToolRouter available, returning pending');
+        return { pending: true };
+      };
+
+      // Use streaming mode for tool calling
+      const stream = await this.aio.chatCompletionStream({
         provider: this.config.provider,
         model: this.config.model,
         messages: formattedMessages,
         tools: formattedTools,
+        onToolCall: onToolCall,
+        maxToolIterations: this.config.maxToolIterations, // Use config value
         temperature: options.temperature ?? this.config.temperature,
         max_tokens: options.maxTokens ?? this.config.maxTokens,
         top_p: this.config.topP,
       });
 
-      const message = response.choices[0].message;
+      // Process stream
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', (chunk: any) => {
+          try {
+            const chunkStr = chunk.toString();
+            if (!chunkStr.startsWith('data: ')) return;
 
-      // Check for tool calls
-      const toolCalls = message.tool_calls?.map((tc: any) => ({
-        id: tc.id,
-        name: tc.function.name,
-        arguments: JSON.parse(tc.function.arguments),
-      }));
+            const data = JSON.parse(chunkStr.slice(6));
 
-      this.logger.debug('Received chat response', {
-        usage: response.usage,
-        hasToolCalls: !!toolCalls,
-        toolCallCount: toolCalls?.length || 0,
+            // Collect text content
+            if (data.choices?.[0]?.delta?.content) {
+              contentParts.push(data.choices[0].delta.content);
+            }
+          } catch (e: any) {
+            // Skip invalid chunks
+          }
+        });
+
+        stream.on('end', () => resolve());
+        stream.on('error', (err: any) => reject(err));
       });
 
+      const content = contentParts.join('');
+
+      this.logger.debug('Received STREAMING chat response', {
+        contentLength: content.length,
+        toolCallCount: toolCalls.length,
+      });
+
+      // Note: Usage not available in streaming mode
       return {
-        content: message.content || '',
-        usage: response.usage,
-        toolCalls,
+        content,
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+        usage: {
+          prompt_tokens: 0,
+          completion_tokens: 0,
+          total_tokens: 0,
+        },
       };
     } catch (error) {
       this.logger.error('Error in chatWithTools', error);
