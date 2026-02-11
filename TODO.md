@@ -40,8 +40,8 @@
   - [x] dotenv (env vars)
 
 ### Testing
-- [x] 105 tests, 397 assertions - ALL PASSING ✅
-  - [x] Unit tests (config, logger, database, memory, bot, tools)
+- [x] 131 tests, 443 assertions - ALL PASSING ✅
+  - [x] Unit tests (config, logger, database, memory, bot, tools, AI client, tool router)
   - [x] Integration tests (setup)
   - [x] TDD approach
 
@@ -49,7 +49,7 @@
 
 ## 🔄 Đang Làm / Tiếp Theo
 
-### 1. Bot Initialization (Priority: HIGH)
+### 1. Bot Initialization (Priority: HIGH) ✅ COMPLETED
 - [x] `src/core/bot.ts` - Initialize mineflayer bot
   - [x] Connect to Minecraft server
   - [x] Load all plugins (pathfinder, collectblock, pvp, etc.)
@@ -74,19 +74,27 @@
 - [x] Tool registry system (`src/tools/index.ts`)
 - [x] Unit tests cho tools (67 tests - ALL PASSING ✅)
 
-### 3. AI Integration (Priority: HIGH)
-- [ ] `src/layers/strategic/ai-client.ts` - Wrapper cho aio-llm
-  - [ ] Initialize AIO với config
-  - [ ] Chat completion với streaming
-  - [ ] Tool calling integration
-  - [ ] Token usage tracking
-  - [ ] Error handling & retries
+### 3. AI Integration (Priority: HIGH) ✅ COMPLETED
+- [x] `src/layers/strategic/ai-client.ts` - Wrapper cho aio-llm
+  - [x] Initialize AIO với config
+  - [x] Chat completion với streaming
+  - [x] Tool calling integration
+  - [x] Token usage tracking
+  - [x] Error handling & retries
+- [x] Unit tests cho AI client (7 tests - ALL PASSING ✅)
 - [ ] `src/layers/strategic/goal-planner.ts` - AI goal planning
   - [ ] Main goal: "Beat Ender Dragon"
   - [ ] Sub-goal decomposition
   - [ ] Priority management
   - [ ] Goal status tracking
-- [ ] Unit tests cho AI integration
+
+### 4. Tool Router (Priority: HIGH) ✅ COMPLETED
+- [x] `src/layers/tactical/tool-router.ts` - Route tool calls
+  - [x] Validate tool calls
+  - [x] Execute tools via registry
+  - [x] Batch execution support
+  - [x] Error handling
+- [x] Unit tests cho tool router (19 tests - ALL PASSING ✅)
 
 ### 4. Perception Layer (Priority: MEDIUM)
 - [ ] `src/layers/perception/world-observer.ts`
@@ -134,12 +142,12 @@
   - [ ] Task prioritization
   - [ ] Task dependencies
   - [ ] Task validation
-- [ ] `src/layers/tactical/tool-router.ts`
-  - [ ] Route LLM tool calls to handlers
-  - [ ] Validate tool parameters
-  - [ ] Handle tool errors
-  - [ ] Return formatted results
-- [ ] Unit tests cho tactical layer
+- [x] `src/layers/tactical/tool-router.ts` ✅ COMPLETED
+  - [x] Route LLM tool calls to handlers
+  - [x] Validate tool parameters
+  - [x] Handle tool errors
+  - [x] Return formatted results
+- [x] Unit tests cho tool router (19 tests - ALL PASSING ✅)
 
 ### 7. Speedrun Strategy (Priority: MEDIUM)
 - [ ] `src/layers/strategic/speedrun-strategy.ts`
@@ -212,8 +220,8 @@
 - **Utils**: 100% ✅
 - **Types**: 100% ✅
 - **Tools**: 100% ✅ (8 tools with 67 tests)
-- **Tactical Layer**: 50% (MemoryManager done, need TaskDecomposer & ToolRouter)
-- **Strategic Layer**: 0%
+- **Tactical Layer**: 67% (MemoryManager ✅, ToolRouter ✅, need TaskDecomposer)
+- **Strategic Layer**: 50% (AIClient ✅, need GoalPlanner)
 - **Execution Layer**: 0%
 - **Perception Layer**: 0%
 
@@ -227,16 +235,16 @@
 - **Actions**: 0%
 - **Speedrun Logic**: 0%
 
-### Overall Completion: ~50%
+### Overall Completion: ~55%
 
 ---
 
 ## 🎯 Next Session Goals
 
-1. **AI Client** ✅ NEXT - Integrate aio-llm with tool calling
-2. **Tool Router** - Route LLM tool calls to handlers
-3. **Perception Layer** - World observer & inventory tracker
-4. **Main Entry Point** - Complete application integration
+1. **Goal Planner** - Strategic layer AI goal planning
+2. **Perception Layer** - World observer & inventory tracker
+3. **Main Entry Point** - Complete application integration
+4. **Task Decomposer** - Break goals into executable tasks
 
 ---
 
